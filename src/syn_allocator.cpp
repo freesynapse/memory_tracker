@@ -93,7 +93,6 @@ namespace Syn {
 	/* (not efficient) To be able to print from high to low 
 	 * memory, all memory allocations of type _alloc_type must be 
 	 * obtained in a first run, and stored in a vector and sorted.
-	 * 
 	 */
 	std::vector<void*> vec_mem;
 	vec_mem.reserve(s_memory.size());
@@ -110,7 +109,6 @@ namespace Syn {
 	// sort the addresses in reverse order (from high to low)
 	std::sort(vec_mem.begin(), vec_mem.end());
 	std::reverse(vec_mem.begin(), vec_mem.end());
-
 		
 	std::vector<std::string> out;
 	for (auto& key : vec_mem)
@@ -142,7 +140,7 @@ namespace Syn {
 	    ss << std::setw(4) << "";
 	    ss << std::setw(49) << std::right << "CALLING FUNCTION";
 	    ss << std::setw(21) << std::right << "CALL";
-	    ss << std::setw(22) << std::right << "MEMORY ADDRESS";
+	    ss << std::setw(27) << std::right << "MEMORY ADDRESS";
 	    ss << std::setw(26) << std::right << "ALLOC (BLOCK)";
 	    if (!_omit_deallocated) ss << std::setw(26) << std::right << "DEALLOC (BLOCK)\n";
 	    else ss << "\n";
@@ -178,7 +176,7 @@ namespace Syn {
 	size_t firstParanthesis = fnc.find('(');
 	size_t lastSpace = fnc.substr(0, firstParanthesis).rfind(' ');
 	std::string fncName = lastSpace == std::string::npos ? fnc.substr(0, firstParanthesis) : fnc.substr(lastSpace+1, firstParanthesis-lastSpace-1);
-	fnc = fncName.substr(0, firstParanthesis) + "()";
+	fnc = fncName.substr(0, firstParanthesis);
 	return fnc;
     }
 

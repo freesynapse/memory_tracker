@@ -326,7 +326,7 @@ namespace Syn {
     static inline vector<T> _syn_vector(const char* _c_file, const char* _c_line, const char* _c_fnc)
     {
 	MemoryResource* rsrc = s_STLMemRsrcHandler.getNewMemoryResource();
-	rsrc->set_caller_signature(get_caller_signature(_c_file, _c_line, _c_fnc, "Syn::vector<>"));
+	rsrc->set_caller_signature(get_caller_signature(_c_file, _c_line, _c_fnc, "Syn::vector"));
 	vector<T> v(0, rsrc);
 	return v;
     }
@@ -335,7 +335,7 @@ namespace Syn {
     static inline list<T> _syn_list(const char* _c_file, const char* _c_line, const char* _c_fnc)
     {
 	MemoryResource* rsrc = s_STLMemRsrcHandler.getNewMemoryResource();
-	rsrc->set_caller_signature(get_caller_signature(_c_file, _c_line, _c_fnc, "Syn::list<>"));
+	rsrc->set_caller_signature(get_caller_signature(_c_file, _c_line, _c_fnc, "Syn::list"));
 	list<T> l(rsrc);
 	return l;
     }
@@ -344,7 +344,7 @@ namespace Syn {
     static inline map<K, T> _syn_map(const char* _c_file, const char* _c_line, const char* _c_fnc)
     {
 	MemoryResource* rsrc = s_STLMemRsrcHandler.getNewMemoryResource();
-	rsrc->set_caller_signature(get_caller_signature(_c_file, _c_line, _c_fnc, "Syn::map<>"));
+	rsrc->set_caller_signature(get_caller_signature(_c_file, _c_line, _c_fnc, "Syn::map"));
 	map<K, T> m(rsrc);
 	return m;
     }
@@ -353,7 +353,7 @@ namespace Syn {
     static inline unordered_map<K, T> _syn_unordered_map(const char* _c_file, const char* _c_line, const char* _c_fnc)
     {
 	MemoryResource* rsrc = s_STLMemRsrcHandler.getNewMemoryResource();
-	rsrc->set_caller_signature(get_caller_signature(_c_file, _c_line, _c_fnc, "Syn::unordered_map<>"));
+	rsrc->set_caller_signature(get_caller_signature(_c_file, _c_line, _c_fnc, "Syn::unordered_map"));
 	unordered_map<K, T> um(rsrc);
 	return um;
     }
@@ -399,7 +399,7 @@ namespace Syn {
 #endif
 
 
-    /* Wrappers for std::allocate_shared<>.
+    /* Wrappers for std::allocate_shared
      */
 
     // basic typedef used in Synapse
@@ -415,7 +415,7 @@ namespace Syn {
 						 const char* _c_line, 
 						 const char* _c_fnc)
     {
-	s_memoryAllocShared->set_caller_signature(get_caller_signature(_c_file, _c_line, _c_fnc, "std::shared_ptr<>"));
+	s_memoryAllocShared->set_caller_signature(get_caller_signature(_c_file, _c_line, _c_fnc, "std::shared_ptr"));
 	pmr_alloc<T> alloc(s_memoryAllocShared);
 	std::shared_ptr<T> ptr = std::allocate_shared<T>(alloc);
 	s_memoryAllocShared->set_caller_signature("");
@@ -428,7 +428,7 @@ namespace Syn {
 						 const char* _c_fnc,
 						 Args ...args)
     {
-	s_memoryAllocShared->set_caller_signature(get_caller_signature(_c_file, _c_line, _c_fnc, "std::shared_ptr<>"));
+	s_memoryAllocShared->set_caller_signature(get_caller_signature(_c_file, _c_line, _c_fnc, "std::shared_ptr"));
 	pmr_alloc<T> alloc(s_memoryAllocShared);
 	std::shared_ptr<T> ptr = std::allocate_shared<T>(alloc, args...);
 	s_memoryAllocShared->set_caller_signature("");
@@ -469,7 +469,10 @@ namespace Syn {
 			   malloc_size_func(void_ptr), 
 			   AllocType::EXPLICIT,
 			   get_caller_signature(_c_file, _c_line, _c_fnc, "new()"));
-	return ptr;
+	if (ptr != nullptr)
+	    return ptr;
+
+	throw std::bad_alloc{};
     }
 
     template<typename T>
@@ -482,34 +485,27 @@ namespace Syn {
 			   malloc_size_func(void_ptr), 
 			   AllocType::EXPLICIT,
 			   get_caller_signature(_c_file, _c_line, _c_fnc, "new[]"));
-	return ptr;
+	if (ptr != nullptr)
+	    return ptr;
+
+	throw std::bad_alloc{};
     }
 
-    // template<typename T>
-    // static inline void _deallocate_n(T* _ptr)
     static inline void _deallocate(void *_ptr)
     {
-	// void* void_ptr = reinterpret_cast<void*>(_ptr);
 	memory_log::remove(_ptr, memory_log::get_alloc_bytes(_ptr), malloc_size_func(_ptr), AllocType::EXPLICIT);
-	// memory_log::remove(void_ptr, memory_log::get_alloc_bytes(void_ptr), malloc_size_func(void_ptr), AllocType::EXPLICIT);
 	::operator delete(_ptr);
     }
 
-    // template<typename T>
-    // static inline void _deallocate_n(T* _ptr)
     static inline void _deallocate_n(void *_ptr)
     {
-	// void* void_ptr = reinterpret_cast<void*>(_ptr);
 	memory_log::remove(_ptr, memory_log::get_alloc_bytes(_ptr), malloc_size_func(_ptr), AllocType::EXPLICIT);
-        // memory_log::remove(void_ptr, memory_log::get_alloc_bytes(void_ptr), malloc_size_func(void_ptr), AllocType::EXPLICIT);
 	::operator delete[](_ptr); 
     }
 #else
     template<typename T, typename ...Args> static inline T* allocate(Args ...args) { return new T(args...); }
     template<typename T> static inline T* allocate() { return new T; }
     template<typename T> static inline T* allocate_n(const std::size_t& _n) {  return new T[_n]; }
-    // template<typename T> static inline void deallocate(T* _ptr) { delete _ptr; }
-    // template<typename T> static inline void deallocate_n(T* _ptr) { delete[] _ptr; }
     static inline void deallocate(void *_ptr) { delete _ptr; }
     static inline void deallocate_n(void *_ptr) { delete[] _ptr; }
 #endif
@@ -550,17 +546,17 @@ namespace Syn {
 // explicit, global allocation macros
 //
 #ifdef DEBUG_MEMORY_ALLOC
-#define SYN_ALLOCATE(T, ...)		 Syn::_allocate<T>(__FILE__, TOSTR(__LINE__), FUNCSIG, ##__VA_ARGS__)
-#define SYN_ALLOCATE_N(T, ...) 		 Syn::_allocate_n<T>(__FILE__, TOSTR(__LINE__), FUNCSIG, ##__VA_ARGS__)
-#define SYN_DEALLOCATE(mem_addr)         Syn::_deallocate(mem_addr);
-#define SYN_DEALLOCATE_N(mem_addr)       Syn::_deallocate_n(mem_addr)
+#define SYN_NEW(T, ...)  		 Syn::_allocate<T>(__FILE__, TOSTR(__LINE__), FUNCSIG, ##__VA_ARGS__)
+#define SYN_NEW_N(T, ...) 		 Syn::_allocate_n<T>(__FILE__, TOSTR(__LINE__), FUNCSIG, ##__VA_ARGS__)
+#define SYN_DELETE(mem_addr)             Syn::_deallocate(mem_addr);
+#define SYN_DELETE_N(mem_addr)           Syn::_deallocate_n(mem_addr)
 // #define SYN_DEALLOCATE(mem_addr)   Syn::_deallocate<decltype(mem_addr)>(mem_addr);
 // #define SYN_DEALLOCATE_N(mem_addr) Syn::_deallocate_n<decltype(mem_addr)>(mem_addr)
 #else
-#define SYN_ALLOCATE(T, ...) 		  new T(__VA_ARGS__)
-#define SYN_ALLOCATE_N(T, n) 		  new T[n]
-#define SYN_DEALLOCATE(mem_addr)          ::operator delete(mem_addr);
-#define SYN_DEALLOCATE_N(mem_addr)        ::operator delete[](mem_addr)
+#define SYN_NEW(T, ...) 		  new T(__VA_ARGS__)
+#define SYN_NEW_N(T, n) 		  new T[n]
+#define SYN_DELETE(mem_addr)              ::operator delete(mem_addr);
+#define SYN_DELETE_N(mem_addr)            ::operator delete[](mem_addr)
 #endif
 
 // macros for creating a alloc-tracked std::shared_ptr

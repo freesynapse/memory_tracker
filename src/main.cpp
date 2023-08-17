@@ -55,12 +55,12 @@ int main()
 
     std::cout << "\n\n";
 	
-    int* pint = SYN_ALLOCATE(int, 100);
-    int* pint2 = SYN_ALLOCATE_N(int, 12000);
-    int* pint3 = SYN_ALLOCATE(int);
-    SYN_DEALLOCATE(pint);
-    SYN_DEALLOCATE_N(pint2);
-    SYN_DEALLOCATE(pint3);
+    int* pint = SYN_NEW(int, 100);
+    int* pint2 = SYN_NEW_N(int, 12000);
+    int* pint3 = SYN_NEW(int);
+    SYN_DELETE(pint);
+    SYN_DELETE_N(pint2);
+    SYN_DELETE(pint3);
     test_fnc0();
     test_fnc1();
 
